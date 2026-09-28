@@ -97,21 +97,21 @@ export default function MaintenancePage() {
 
   return (
     <>
-      <Header title="Maintenance & Incident Dispatches" />
+      <Header title="Public Works Maintenance & Work Orders" />
       <div className="page-body">
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <div>
-            <h1 style={{ fontSize: "1.5rem" }}>Maintenance Work Orders</h1>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-              Corrective break-fix dispatches, spare parts logging, downtime hours and technician repairs.
+            <h1 style={{ fontSize: "1.35rem", marginBottom: "2px" }}>Infrastructure Maintenance Orders</h1>
+            <p style={{ color: "#78716C", fontSize: "0.82rem" }}>
+              Work order dispatches, contractor repairs, and defect remediation certification.
             </p>
           </div>
 
           {hasPermission("maintenance:create") && (
             <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-              <Plus size={16} />
-              <span>Raise Ticket</span>
+              <Plus size={15} />
+              <span>Raise Work Order</span>
             </button>
           )}
         </div>
@@ -148,7 +148,7 @@ export default function MaintenancePage() {
                 ) : (
                   tickets.map((t) => (
                     <tr key={t.id}>
-                      <td style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--accent-cyan)" }}>
+                      <td style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: "#B45309" }}>
                         {t.ticket_number}
                       </td>
                       <td style={{ fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontSize: "0.82rem" }}>

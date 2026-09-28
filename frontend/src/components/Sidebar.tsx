@@ -11,7 +11,11 @@ import {
   ShieldCheck,
   Settings,
   LogOut,
-  Building2,
+  Landmark,
+  FolderKanban,
+  MapPin,
+  ClipboardCheck,
+  AlertCircle,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
@@ -22,28 +26,32 @@ export function Sidebar() {
   const navItems = [
     { label: "Dashboard", href: "/", icon: LayoutDashboard },
     { label: "Asset Registry", href: "/assets", icon: Boxes, perm: "asset:read" },
-    { label: "Transfers", href: "/transfers", icon: ArrowLeftRight, perm: "asset:read" },
-    { label: "Maintenance", href: "/maintenance", icon: Wrench, perm: "maintenance:read" },
-    { label: "Audits & Scans", href: "/audits", icon: ShieldCheck, perm: "audit:read" },
+    { label: "Projects & Schemes", href: "/projects", icon: FolderKanban, perm: "asset:read" },
+    { label: "Field Inspections", href: "/inspections", icon: ClipboardCheck, perm: "audit:read" },
+    { label: "GIS Map View", href: "/map", icon: MapPin, perm: "asset:read" },
+    { label: "Maintenance Orders", href: "/maintenance", icon: Wrench, perm: "maintenance:read" },
+    { label: "Public Grievances", href: "/complaints", icon: AlertCircle, perm: "asset:read" },
+    { label: "Inter-District Transfers", href: "/transfers", icon: ArrowLeftRight, perm: "asset:read" },
+    { label: "Statutory Audits", href: "/audits", icon: ShieldCheck, perm: "audit:read" },
     { label: "QR Scanner", href: "/assets/scan", icon: QrCode },
-    { label: "Settings & Users", href: "/settings", icon: Settings, perm: "user:manage" },
+    { label: "Authority Settings", href: "/settings", icon: Settings, perm: "user:manage" },
   ];
 
   return (
     <aside className="sidebar">
-      {/* Brand */}
-      <div style={{ padding: "24px 20px", display: "flex", alignItems: "center", gap: "12px", borderBottom: "1px solid var(--border-subtle)" }}>
-        <div style={{ background: "linear-gradient(135deg, #6366F1, #06B6D4)", width: "38px", height: "38px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(99,102,241,0.4)" }}>
-          <Building2 size={20} color="#fff" />
+      {/* Brand Header */}
+      <div style={{ padding: "18px 16px", display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid var(--border-subtle)", background: "#FAF8F2" }}>
+        <div style={{ background: "#B45309", width: "36px", height: "36px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.12)" }}>
+          <Landmark size={20} color="#FFFFFF" />
         </div>
         <div>
-          <div style={{ fontWeight: 800, fontSize: "1.05rem", letterSpacing: "-0.02em" }}>AssetFlow</div>
-          <div style={{ fontSize: "0.72rem", color: "var(--accent-cyan)", fontWeight: 600, textTransform: "uppercase" }}>Enterprise ALM</div>
+          <div style={{ fontWeight: 800, fontSize: "1rem", color: "#1C1917", letterSpacing: "-0.01em" }}>GovInfra ALM</div>
+          <div style={{ fontSize: "0.68rem", color: "#78716C", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.03em" }}>Public Infrastructure</div>
         </div>
       </div>
 
       {/* Nav List */}
-      <nav style={{ padding: "16px 12px", flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
+      <nav style={{ padding: "12px 10px", flex: 1, display: "flex", flexDirection: "column", gap: "2px", overflowY: "auto" }}>
         {navItems.map((item) => {
           if (item.perm && !hasPermission(item.perm)) return null;
           const isActive = pathname === item.href;
@@ -56,20 +64,20 @@ export function Sidebar() {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "12px",
-                padding: "10px 14px",
+                gap: "10px",
+                padding: "8px 12px",
                 borderRadius: "var(--radius-md)",
-                color: isActive ? "#fff" : "var(--text-muted)",
-                backgroundColor: isActive ? "rgba(99, 102, 241, 0.15)" : "transparent",
-                border: isActive ? "1px solid rgba(99, 102, 241, 0.3)" : "1px solid transparent",
-                fontWeight: isActive ? 600 : 500,
-                fontSize: "0.9rem",
+                color: isActive ? "#92400E" : "#44403C",
+                backgroundColor: isActive ? "#FEF3C7" : "transparent",
+                border: isActive ? "1px solid #FDE68A" : "1px solid transparent",
+                fontWeight: isActive ? 700 : 500,
+                fontSize: "0.85rem",
                 textDecoration: "none",
-                transition: "all 0.15s ease",
+                transition: "all 0.12s ease",
               }}
             >
-              <Icon size={18} color={isActive ? "#818CF8" : "#94A3B8"} />
-              {item.label}
+              <Icon size={17} color={isActive ? "#B45309" : "#78716C"} />
+              <span>{item.label}</span>
             </Link>
           );
         })}
@@ -77,26 +85,26 @@ export function Sidebar() {
 
       {/* User Card */}
       {user && (
-        <div style={{ padding: "16px", borderTop: "1px solid var(--border-subtle)", background: "rgba(0,0,0,0.2)" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+        <div style={{ padding: "14px 16px", borderTop: "1px solid var(--border-subtle)", background: "#EFECE4" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ overflow: "hidden" }}>
-              <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-main)", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+              <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#1C1917", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
                 {user.first_name} {user.last_name}
               </div>
-              <div style={{ fontSize: "0.72rem", color: "var(--accent-cyan)", fontWeight: 600 }}>
+              <div style={{ fontSize: "0.70rem", color: "#B45309", fontWeight: 700 }}>
                 {user.role_code}
               </div>
             </div>
             <button
               onClick={logout}
-              title="Logout"
+              title="Sign Out"
               style={{
                 background: "transparent",
                 border: "none",
-                color: "var(--text-dim)",
+                color: "#78716C",
                 cursor: "pointer",
                 padding: "6px",
-                borderRadius: "6px",
+                borderRadius: "4px",
                 display: "flex",
                 alignItems: "center",
               }}

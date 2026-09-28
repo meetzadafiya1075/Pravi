@@ -1,98 +1,54 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: pravi_postgres
+  mongodb:
+    image: mongo:7.0-jammy
+    container_name: gov_infra_mongodb
     restart: unless-stopped
-    environment:
-      POSTGRES_DB: asset_management_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: devpassword
     ports:
-      - "5432:5432"
+      - "27017:27017"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mongodb_data:/data/db
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
       timeout: 5s
       retries: 5
-
-  redis:
-    image: redis:7-alpine
-    container_name: pravi_redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  minio:
-    image: minio/minio:latest
-    container_name: pravi_minio
-    restart: unless-stopped
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadminpassword
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: pravi_backend
+    container_name: gov_infra_backend
     restart: unless-stopped
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
+      mongodb:
         condition: service_healthy
     environment:
-      - ENVIRONMENT=development
-      - DATABASE_URL=postgresql+asyncpg://postgres:devpassword@postgres:5432/asset_management_db
-      - REDIS_URL=redis://redis:6379/0
-      - JWT_SECRET_KEY=dev_jwt_secret_key_change_in_production_32_bytes_min
-      - S3_ENDPOINT_URL=http://minio:9000
-      - S3_ACCESS_KEY_ID=minioadmin
-      - S3_SECRET_ACCESS_KEY=minioadminpassword
-      - S3_BUCKET_NAME=asset-management
-      - CORS_ORIGINS=http://localhost:3000
+      - NODE_ENV=development
+      - PORT=8000
+      - MONGODB_URI=mongodb://mongodb:27017/gov_infra
+      - JWT_SECRET=super_secure_secret_key_minimum_32_characters_long_1234567890
+      - JWT_REFRESH_SECRET=refresh_super_secret_jwt_key_9876543210
+      - CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+      - CLOUDINARY_CLOUD_NAME=demo-gov-infra
+      - CLOUDINARY_API_KEY=123456789
+      - CLOUDINARY_API_SECRET=mock-secret-key
     ports:
       - "8000:8000"
 
-  worker:
+  frontend:
     build:
-      context: ./backend
+      context: ./frontend
       dockerfile: Dockerfile
-    container_name: pravi_worker
+    container_name: gov_infra_frontend
     restart: unless-stopped
-    command: arq app.workers.worker.WorkerSettings
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - backend
     environment:
-      - ENVIRONMENT=development
-      - DATABASE_URL=postgresql+asyncpg://postgres:devpassword@postgres:5432/asset_management_db
-      - REDIS_URL=redis://redis:6379/0
-      - S3_ENDPOINT_URL=http://minio:9000
-      - S3_ACCESS_KEY_ID=minioadmin
-      - S3_SECRET_ACCESS_KEY=minioadminpassword
-      - S3_BUCKET_NAME=asset-management
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    ports:
+      - "3000:3000"
 
 volumes:
-  postgres_data:
-  redis_data:
-  minio_data:
+  mongodb_data:

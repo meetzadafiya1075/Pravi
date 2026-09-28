@@ -146,21 +146,40 @@ export default function AssetDetailPage() {
 
   const formatCurrency = (val: number | string) => {
     const num = typeof val === "string" ? parseFloat(val) : val;
-    return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(num || 0);
+    if (num >= 10000000) {
+      return `₹${(num / 10000000).toFixed(2)} Cr`;
+    } else if (num >= 100000) {
+      return `₹${(num / 100000).toFixed(2)} Lakh`;
+    }
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(num || 0);
+  };
+
+  const getConditionColor = (cond: string) => {
+    switch (cond?.toUpperCase()) {
+      case "GOOD": return "#10B981";
+      case "FAIR": return "#38BDF8";
+      case "NEEDS_MAINTENANCE": return "#F59E0B";
+      case "POOR": return "#FB923C";
+      case "CRITICAL": return "#EF4444";
+      default: return "#94A3B8";
+    }
   };
 
   return (
     <>
-      <Header title={`Asset: ${asset.name}`} />
+      <Header title={`Infrastructure: ${asset.name}`} />
       <div className="page-body">
 
         {/* Back Link */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <Link href="/assets" className="btn btn-secondary" style={{ padding: "8px 14px", fontSize: "0.85rem" }}>
             <ArrowLeft size={16} />
-            <span>Back to Inventory</span>
+            <span>Back to Asset Register</span>
           </Link>
           <div style={{ display: "flex", gap: "10px" }}>
+            <Link href="/map" className="btn btn-secondary" style={{ padding: "8px 14px", fontSize: "0.85rem" }}>
+              <span>View on GIS Map</span>
+            </Link>
             <button className="btn btn-secondary" onClick={() => setShowQrModal(true)}>
               <QrCode size={16} color="var(--accent-cyan)" />
               <span>QR Label</span>
@@ -177,17 +196,34 @@ export default function AssetDetailPage() {
         {/* Hero Card */}
         <div className="glass-panel" style={{ padding: "28px 32px", marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "20px" }}>
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px", flexWrap: "wrap" }}>
               <span style={{ fontSize: "1.2rem", fontWeight: 700, fontFamily: "var(--font-mono)", color: "var(--accent-cyan)" }}>
                 {asset.asset_tag}
               </span>
               <span className={`badge badge-${asset.status}`}>
                 {asset.status.replace("_", " ")}
               </span>
+              <span
+                style={{
+                  fontSize: "0.74rem",
+                  fontWeight: 700,
+                  padding: "3px 10px",
+                  borderRadius: "12px",
+                  background: `${getConditionColor(asset.condition)}22`,
+                  color: getConditionColor(asset.condition),
+                  border: `1px solid ${getConditionColor(asset.condition)}44`,
+                }}
+              >
+                {asset.condition || "GOOD"}
+              </span>
+              <span style={{ fontSize: "0.74rem", color: asset.criticality === "CRITICAL" ? "#F87171" : "var(--text-dim)", fontWeight: 600 }}>
+                {asset.criticality || "MEDIUM"} CRITICALITY
+              </span>
             </div>
-            <h1 style={{ fontSize: "1.7rem", marginBottom: "6px" }}>{asset.name}</h1>
-            <div style={{ fontSize: "0.88rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
-              Serial Number: <strong style={{ color: "var(--text-muted)" }}>{asset.serial_number}</strong>
+            <h1 style={{ fontSize: "1.65rem", marginBottom: "6px" }}>{asset.name}</h1>
+            <div style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>
+              Serial / Identification: <strong style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>{asset.serial_number}</strong>
+              {asset.district && <span> • 📍 Jurisdiction: <strong style={{ color: "var(--text-main)" }}>{asset.district}</strong> {asset.ward ? `(${asset.ward})` : ""}</span>}
             </div>
           </div>
 
@@ -197,7 +233,7 @@ export default function AssetDetailPage() {
               {formatCurrency(asset.current_book_value)}
             </div>
             <div style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>
-              Original Cost: {formatCurrency(asset.purchase_cost)}
+              Capital Outlay: {formatCurrency(asset.purchase_cost)}
             </div>
           </div>
         </div>
@@ -287,32 +323,52 @@ export default function AssetDetailPage() {
           
           {/* Metadata Card */}
           <div className="glass-panel" style={{ padding: "24px" }}>
-            <h3 style={{ marginBottom: "16px" }}>Asset Specification & Location</h3>
+            <h3 style={{ marginBottom: "16px" }}>Government Infrastructure & Geospatial Data</h3>
             
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", fontSize: "0.88rem" }}>
               <div>
-                <div style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>Asset Category</div>
-                <div style={{ fontWeight: 600, marginTop: "2px" }}>{asset.category_id}</div>
+                <div style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>District / Municipality</div>
+                <div style={{ fontWeight: 600, marginTop: "2px", color: "var(--accent-cyan)" }}>
+                  {asset.district || "State Jurisdiction"}
+                </div>
               </div>
               <div>
-                <div style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>Assigned Department</div>
-                <div style={{ fontWeight: 600, marginTop: "2px" }}>{asset.department_id || "Unassigned"}</div>
+                <div style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>Zone & Municipal Ward</div>
+                <div style={{ fontWeight: 600, marginTop: "2px" }}>
+                  {asset.zone || "Central"} {asset.ward ? `• ${asset.ward}` : ""}
+                </div>
               </div>
               <div>
-                <div style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>Location Site</div>
-                <div style={{ fontWeight: 600, marginTop: "2px" }}>{asset.location_id || "Main Warehouse"}</div>
+                <div style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>GPS Coordinates</div>
+                <div style={{ fontWeight: 600, marginTop: "2px", fontFamily: "var(--font-mono)", fontSize: "0.82rem" }}>
+                  {asset.latitude ? `${asset.latitude}, ${asset.longitude}` : "23.0305, 72.5076"}
+                </div>
               </div>
               <div>
-                <div style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>Useful Life</div>
+                <div style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>Tender / Work Order Ref</div>
+                <div style={{ fontWeight: 600, marginTop: "2px", fontFamily: "var(--font-mono)" }}>
+                  {asset.tender_id || "Direct Public Work"}
+                </div>
+              </div>
+              <div>
+                <div style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>Physical Condition</div>
+                <div style={{ fontWeight: 700, marginTop: "2px", color: getConditionColor(asset.condition) }}>
+                  {asset.condition || "GOOD"}
+                </div>
+              </div>
+              <div>
+                <div style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>Criticality Tier</div>
+                <div style={{ fontWeight: 600, marginTop: "2px" }}>
+                  {asset.criticality || "MEDIUM"}
+                </div>
+              </div>
+              <div>
+                <div style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>Design Life</div>
                 <div style={{ fontWeight: 600, marginTop: "2px" }}>{asset.useful_life_months} Months</div>
               </div>
               <div>
-                <div style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>Purchase Date</div>
+                <div style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>Commissioning Date</div>
                 <div style={{ fontWeight: 600, marginTop: "2px" }}>{asset.purchase_date || "N/A"}</div>
-              </div>
-              <div>
-                <div style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>Optimistic Lock Version</div>
-                <div style={{ fontWeight: 600, marginTop: "2px" }}>v{asset.version}</div>
               </div>
             </div>
 

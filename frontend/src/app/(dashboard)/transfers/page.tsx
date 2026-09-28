@@ -87,20 +87,20 @@ export default function TransfersPage() {
 
   return (
     <>
-      <Header title="Departmental Equipment Transfers" />
+      <Header title="Inter-District Infrastructure Transfers" />
       <div className="page-body">
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <div>
-            <h1 style={{ fontSize: "1.5rem" }}>Equipment Transfer Workflows</h1>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-              Inter-departmental hardware custody reassignments with dual-manager authorization.
+            <h1 style={{ fontSize: "1.35rem", marginBottom: "2px" }}>Infrastructure Transfer & Relocation</h1>
+            <p style={{ color: "#78716C", fontSize: "0.82rem" }}>
+              Inter-district and departmental custody transfers with jurisdictional sign-off.
             </p>
           </div>
 
           {hasPermission("asset:transfer_request") && (
             <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-              <Plus size={16} />
+              <Plus size={15} />
               <span>Initiate Transfer</span>
             </button>
           )}
@@ -131,13 +131,13 @@ export default function TransfersPage() {
                 ) : transfers.length === 0 ? (
                   <tr>
                     <td colSpan={7} style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)" }}>
-                      No hardware transfers recorded. Click "Initiate Transfer" to relocate assets.
+                      No infrastructure transfers recorded. Click "Initiate Transfer" to relocate assets.
                     </td>
                   </tr>
                 ) : (
                   transfers.map((t) => (
                     <tr key={t.id}>
-                      <td style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--accent-cyan)" }}>
+                      <td style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: "#B45309" }}>
                         {t.asset_id.slice(0, 8)}...
                       </td>
                       <td style={{ fontWeight: 600 }}>{t.source_department_id.slice(0, 8)}...</td>

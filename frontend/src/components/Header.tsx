@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { QrCode, Bell } from "lucide-react";
+import { QrCode } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
 export function Header({ title }: { title: string }) {
@@ -10,26 +10,27 @@ export function Header({ title }: { title: string }) {
   return (
     <header className="top-header">
       <div>
-        <h2 style={{ fontSize: "1.2rem", fontWeight: 700 }}>{title}</h2>
+        <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#1C1917" }}>{title}</h2>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-        <Link href="/assets/scan" className="btn btn-secondary" style={{ padding: "8px 14px", fontSize: "0.82rem" }}>
-          <QrCode size={15} color="#06B6D4" />
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <Link href="/assets/scan" className="btn btn-secondary" style={{ padding: "6px 12px", fontSize: "0.80rem" }}>
+          <QrCode size={14} color="#B45309" />
           <span>Quick Scan</span>
         </Link>
 
         {user && (
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <span
               style={{
-                fontSize: "0.75rem",
-                padding: "4px 10px",
-                borderRadius: "20px",
-                background: "rgba(99, 102, 241, 0.15)",
-                color: "#818CF8",
-                border: "1px solid rgba(99, 102, 241, 0.3)",
-                fontWeight: 600,
+                fontSize: "0.72rem",
+                padding: "3px 10px",
+                borderRadius: "4px",
+                background: "#FEF3C7",
+                color: "#92400E",
+                border: "1px solid #FDE68A",
+                fontWeight: 700,
+                letterSpacing: "0.03em",
               }}
             >
               {user.role_code}

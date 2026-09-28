@@ -2,41 +2,45 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, Shield, ArrowRight, Lock, Mail } from "lucide-react";
+import { Landmark, Shield, ArrowRight, Lock, Mail } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth-context";
 
 const DEMO_PRESETS = [
-  { role: "ASSET_MANAGER", email: "manager@acme.corp", label: "Asset Manager", desc: "Full procurement, assignment, write-offs & audits" },
-  { role: "EMPLOYEE", email: "john.dev@acme.corp", label: "Staff / Employee", desc: "View assigned assets, request equipment & raise tickets" },
-  { role: "TECHNICIAN", email: "tech@support.internal", label: "Maintenance Tech", desc: "Diagnose repairs, log parts, labor costs & resolve tickets" },
-  { role: "AUDITOR", email: "auditor@compliance.org", label: "Compliance Auditor", desc: "Physical inventory audits, camera scanning & reconciliation" },
-  { role: "DEPARTMENT_MANAGER", email: "dept.head@acme.corp", label: "Dept Manager", desc: "Department asset approvals and inter-dept transfers" },
-  { role: "SUPER_ADMIN", email: "admin@platform.internal", label: "Super Admin", desc: "System configuration, user provisioning & global access" },
+  { role: "SUPER_ADMIN", email: "admin@gov.internal", label: "State Authority Admin", desc: "Apex state administration & policy oversight" },
+  { role: "DEPARTMENT_ADMIN", email: "pwd.director@gov.internal", label: "PWD Chief Engineer", desc: "Capital tenders, projects & lifecycle signoffs" },
+  { role: "DISTRICT_OFFICER", email: "district.officer@gov.internal", label: "District Officer (Ahmedabad)", desc: "Zonal jurisdiction & inter-district transfers" },
+  { role: "INSPECTOR", email: "inspector.patel@gov.internal", label: "Infrastructure Inspector", desc: "Structural audits & physical condition grading" },
+  { role: "MAINTENANCE_OFFICER", email: "maintenance.eng@gov.internal", label: "Public Works Engineer", desc: "Work order dispatch & repair certification" },
+  { role: "CONTRACTOR", email: "contractor.rep@lt-infra.internal", label: "Contractor Rep (L&T)", desc: "Assigned infrastructure schemes & milestone logs" },
+  { role: "AUDITOR", email: "auditor.vigilance@gov.internal", label: "Vigilance & State Auditor", desc: "Statutory compliance & immutable audit logs" },
 ];
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("manager@acme.corp");
+  const [email, setEmail] = useState("admin@gov.internal");
   const [password, setPassword] = useState("Password123!");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleLogin = async (e?: React.FormEvent, customEmail?: string) => {
-    if (e) e.preventDefault();
+  const handleLogin = async (e?: React.FormEvent, customEmail?: string, customPassword?: string) => {
+    if (e && typeof e.preventDefault === "function") {
+      e.preventDefault();
+    }
     setError("");
     setLoading(true);
 
     try {
       const targetEmail = customEmail || email;
+      const targetPassword = customPassword || password;
       const res = await apiClient.post("/api/v1/auth/login", {
         email: targetEmail,
-        password: password,
+        password: targetPassword,
       });
       login(res.data);
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Invalid login credentials. Please check your details.");
+      setError(err.response?.data?.detail || "Invalid credentials. Please verify your officer credentials.");
     } finally {
       setLoading(false);
     }
@@ -45,49 +49,54 @@ export default function LoginPage() {
   const handlePresetSelect = (presetEmail: string) => {
     setEmail(presetEmail);
     setPassword("Password123!");
-    handleLogin(undefined, presetEmail);
+    handleLogin(undefined, presetEmail, "Password123!");
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", background: "radial-gradient(ellipse at top, #111827 0%, #090D16 100%)" }}>
-      <div style={{ width: "100%", maxWidth: "980px", display: "grid", gridTemplateColumns: "1fr 1.1fr", gap: "32px", alignItems: "stretch" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", background: "#FAF8F2" }}>
+      <div style={{ width: "100%", maxWidth: "1000px", display: "grid", gridTemplateColumns: "1fr 1.15fr", gap: "24px", alignItems: "stretch" }}>
         
         {/* Left: Login Form */}
-        <div className="glass-panel" style={{ padding: "40px 36px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "28px" }}>
-            <div style={{ background: "linear-gradient(135deg, #6366F1, #06B6D4)", width: "42px", height: "42px", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 20px rgba(99,102,241,0.4)" }}>
-              <Building2 size={24} color="#fff" />
+        <div style={{ background: "#FFFFFF", border: "1px solid #E6E0D2", borderRadius: "8px", padding: "36px 32px", display: "flex", flexDirection: "column", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "22px" }}>
+            <div style={{ background: "#B45309", width: "40px", height: "40px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Landmark size={22} color="#FFFFFF" />
             </div>
             <div>
-              <div style={{ fontSize: "1.3rem", fontWeight: 800, letterSpacing: "-0.02em" }}>AssetFlow</div>
-              <div style={{ fontSize: "0.75rem", color: "var(--accent-cyan)", fontWeight: 600 }}>ENTERPRISE PLATFORM</div>
+              <div style={{ fontSize: "1.15rem", fontWeight: 800, color: "#1C1917", letterSpacing: "-0.01em" }}>GovInfra Portal</div>
+              <div style={{ fontSize: "0.68rem", color: "#B45309", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" }}>Government Infrastructure ALM</div>
             </div>
           </div>
 
-          <h2 style={{ marginBottom: "8px" }}>Sign In to Portal</h2>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", marginBottom: "24px" }}>
-            Authenticate with your organizational enterprise credentials.
+          <h2 style={{ fontSize: "1.25rem", marginBottom: "4px", color: "#1C1917" }}>Officer Portal Sign-In</h2>
+          <p style={{ color: "#78716C", fontSize: "0.84rem", marginBottom: "20px" }}>
+            Authorized personnel only. Authenticate with official credentials.
           </p>
 
           {error && (
-            <div style={{ padding: "12px 14px", borderRadius: "8px", background: "rgba(244,63,94,0.15)", border: "1px solid rgba(244,63,94,0.3)", color: "#FB7185", fontSize: "0.85rem", marginBottom: "20px" }}>
+            <div style={{ padding: "10px 12px", borderRadius: "6px", background: "#FEF2F2", border: "1px solid #FECACA", color: "#B91C1C", fontSize: "0.82rem", marginBottom: "16px" }}>
               {error}
             </div>
           )}
 
-          <form onSubmit={handleLogin}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin(e);
+            }}
+          >
             <div className="form-group">
-              <label className="form-label">Email Address</label>
+              <label className="form-label">Official Email</label>
               <div style={{ position: "relative" }}>
                 <input
                   type="email"
                   className="form-input"
-                  style={{ width: "100%", paddingLeft: "38px" }}
+                  style={{ width: "100%", paddingLeft: "36px" }}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
-                <Mail size={16} color="var(--text-dim)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
+                <Mail size={16} color="#A8A29E" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
               </div>
             </div>
 
@@ -97,61 +106,61 @@ export default function LoginPage() {
                 <input
                   type="password"
                   className="form-input"
-                  style={{ width: "100%", paddingLeft: "38px" }}
+                  style={{ width: "100%", paddingLeft: "36px" }}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
-                <Lock size={16} color="var(--text-dim)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
+                <Lock size={16} color="#A8A29E" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary" style={{ width: "100%", marginTop: "12px", padding: "12px" }} disabled={loading}>
-              {loading ? "Authenticating..." : "Sign In to Dashboard"}
-              <ArrowRight size={16} />
+            <button type="submit" className="btn btn-primary" style={{ width: "100%", marginTop: "8px", padding: "10px" }} disabled={loading}>
+              {loading ? "Authenticating..." : "Sign In to Authority"}
+              <ArrowRight size={15} />
             </button>
           </form>
         </div>
 
-        {/* Right: Demo Quick Logins for Hackathon Evaluators */}
-        <div className="glass-panel" style={{ padding: "36px", background: "rgba(17, 24, 39, 0.4)", display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-            <Shield size={18} color="var(--accent-cyan)" />
-            <h3 style={{ fontSize: "1.05rem", fontWeight: 700 }}>Evaluator One-Click Logins</h3>
+        {/* Right: Quick Role Selector */}
+        <div style={{ background: "#F5F2EB", border: "1px solid #E6E0D2", borderRadius: "8px", padding: "30px 28px", display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+            <Shield size={18} color="#B45309" />
+            <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#1C1917" }}>1-Click Role Access</h3>
           </div>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.82rem", marginBottom: "20px" }}>
-            Select any persona below to test complete multi-role RBAC workflows immediately:
+          <p style={{ color: "#78716C", fontSize: "0.80rem", marginBottom: "16px" }}>
+            Select an administrative role below to evaluate scoped workflows:
           </p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", flex: 1 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", overflowY: "auto", flex: 1 }}>
             {DEMO_PRESETS.map((p) => (
               <div
                 key={p.role}
                 onClick={() => handlePresetSelect(p.email)}
                 style={{
-                  padding: "12px 14px",
-                  borderRadius: "10px",
-                  background: "rgba(255, 255, 255, 0.03)",
-                  border: "1px solid var(--border-subtle)",
+                  padding: "10px 12px",
+                  borderRadius: "6px",
+                  background: "#FFFFFF",
+                  border: "1px solid #E6E0D2",
                   cursor: "pointer",
-                  transition: "all 0.15s ease",
+                  transition: "all 0.12s ease",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(99, 102, 241, 0.12)";
-                  e.currentTarget.style.borderColor = "rgba(99, 102, 241, 0.35)";
+                  e.currentTarget.style.background = "#FEF3C7";
+                  e.currentTarget.style.borderColor = "#FDE68A";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.03)";
-                  e.currentTarget.style.borderColor = "var(--border-subtle)";
+                  e.currentTarget.style.background = "#FFFFFF";
+                  e.currentTarget.style.borderColor = "#E6E0D2";
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                  <span style={{ fontWeight: 600, fontSize: "0.88rem", color: "var(--text-main)" }}>{p.label}</span>
-                  <span style={{ fontSize: "0.72rem", color: "var(--primary)", fontWeight: 700, background: "rgba(99,102,241,0.15)", padding: "2px 6px", borderRadius: "4px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2px" }}>
+                  <span style={{ fontWeight: 700, fontSize: "0.84rem", color: "#1C1917" }}>{p.label}</span>
+                  <span style={{ fontSize: "0.68rem", color: "#92400E", fontWeight: 700, background: "#FEF3C7", padding: "2px 6px", borderRadius: "4px", border: "1px solid #FDE68A" }}>
                     {p.role}
                   </span>
                 </div>
-                <div style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>{p.desc}</div>
+                <div style={{ fontSize: "0.74rem", color: "#78716C" }}>{p.desc}</div>
               </div>
             ))}
           </div>

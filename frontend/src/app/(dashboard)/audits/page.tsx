@@ -135,8 +135,8 @@ export default function AuditsPage() {
                       <span>Reconciliation Progress</span>
                       <span>{verifiedItems} / {totalItems} Scanned ({progressPct}%)</span>
                     </div>
-                    <div style={{ width: "100%", height: "8px", background: "rgba(255,255,255,0.06)", borderRadius: "4px", overflow: "hidden" }}>
-                      <div style={{ width: `${progressPct}%`, height: "100%", background: "linear-gradient(90deg, #6366F1, #06B6D4)", borderRadius: "4px", transition: "width 0.3s ease" }} />
+                    <div style={{ width: "100%", height: "8px", background: "#EFECE4", borderRadius: "4px", overflow: "hidden" }}>
+                      <div style={{ width: `${progressPct}%`, height: "100%", background: "#B45309", borderRadius: "4px", transition: "width 0.3s ease" }} />
                     </div>
                   </div>
 

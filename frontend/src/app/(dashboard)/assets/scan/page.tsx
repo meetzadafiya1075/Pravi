@@ -7,6 +7,57 @@ import { ArrowLeft, Camera, CheckCircle2, AlertTriangle, XCircle, Search, Eye } 
 import { Header } from "@/components/Header";
 import { apiClient } from "@/lib/api-client";
 
+function extractAssetIdentifier(input: string): { tag?: string; id?: string; raw: string } {
+  if (!input) return { raw: "" };
+  const trimmed = input.trim();
+
+  // 1. Try parsing JSON
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      return {
+        tag: parsed.tag || parsed.asset_tag,
+        id: parsed.id || parsed.asset_id || parsed._id,
+        raw: trimmed,
+      };
+    } catch (e) {
+      // not full valid json, fallback to regex
+    }
+  }
+
+  // Fallback regex for partial or unescaped JSON
+  if (trimmed.includes('"id"') || trimmed.includes('"tag"')) {
+    const tagMatch = trimmed.match(/"(?:tag|asset_tag)"\s*:\s*"([^"]+)"/);
+    const idMatch = trimmed.match(/"(?:id|asset_id|_id)"\s*:\s*"([^"]+)"/);
+    if (tagMatch || idMatch) {
+      return {
+        tag: tagMatch ? tagMatch[1] : undefined,
+        id: idMatch ? idMatch[1] : undefined,
+        raw: trimmed,
+      };
+    }
+  }
+
+  // 2. Try parsing URL query parameter ?tag=...
+  if (trimmed.includes("tag=")) {
+    const match = trimmed.match(/[?&]tag=([^&]+)/);
+    if (match && match[1]) {
+      return { tag: decodeURIComponent(match[1]), raw: trimmed };
+    }
+  }
+
+  // 3. Try parsing URL path e.g. /assets/UUID or /assets/TAG
+  if (trimmed.includes("/assets/")) {
+    const parts = trimmed.split("/assets/")[1]?.split(/[?#/]/)[0];
+    if (parts && parts !== "scan") {
+      return { id: parts, tag: parts, raw: trimmed };
+    }
+  }
+
+  // 4. Fallback: treat as raw identifier
+  return { tag: trimmed, id: trimmed, raw: trimmed };
+}
+
 export default function ScanPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -21,18 +72,51 @@ export default function ScanPage() {
   const [cameraError, setCameraError] = useState("");
   const scannerRef = useRef<any>(null);
 
-  const lookupAssetByTag = async (tag: string) => {
-    if (!tag) return;
+  const lookupAsset = async (rawInput: string) => {
+    if (!rawInput || !rawInput.trim()) return;
     setLoading(true);
     setScanStatus(null);
+
+    const { tag, id, raw } = extractAssetIdentifier(rawInput);
+    const displayIdentifier = tag || id || raw;
+    setScannedTag(displayIdentifier);
+
     try {
-      const res = await apiClient.get("/api/v1/assets", { params: { q: tag } });
-      const match = res.data.find((a: any) => a.asset_tag.toUpperCase() === tag.toUpperCase());
-      if (match) {
-        setAssetData(match);
+      let foundAsset: any = null;
+
+      // 1. If we have an ID (UUID or asset_tag lookup on /api/v1/assets/:id)
+      if (id) {
+        try {
+          const directRes = await apiClient.get(`/api/v1/assets/${encodeURIComponent(id)}`);
+          if (directRes.data && (directRes.data.id || directRes.data._id || directRes.data.asset_tag)) {
+            foundAsset = directRes.data;
+          }
+        } catch (e) {
+          // Fallback to query
+        }
+      }
+
+      // 2. Query registry by tag or display identifier if not found yet
+      if (!foundAsset) {
+        const queryTerm = tag || id || displayIdentifier;
+        const res = await apiClient.get("/api/v1/assets", { params: { q: queryTerm } });
+        const list = Array.isArray(res.data) ? res.data : [];
+
+        foundAsset = list.find((a: any) =>
+          (tag && a.asset_tag?.toUpperCase() === tag.toUpperCase()) ||
+          (id && (a.id === id || a._id === id)) ||
+          a.asset_tag?.toUpperCase() === queryTerm.toUpperCase() ||
+          a.id === queryTerm ||
+          a._id === queryTerm
+        ) || (list.length === 1 ? list[0] : null);
+      }
+
+      if (foundAsset) {
+        setAssetData(foundAsset);
+        setScannedTag(foundAsset.asset_tag || displayIdentifier);
       } else {
         setAssetData(null);
-        setScanStatus("Asset tag not found in inventory registry");
+        setScanStatus(`Asset tag '${displayIdentifier}' not found in inventory registry`);
       }
     } catch (err) {
       setScanStatus("Failed to query asset registry");
@@ -43,7 +127,7 @@ export default function ScanPage() {
 
   useEffect(() => {
     if (initialTag) {
-      lookupAssetByTag(initialTag);
+      lookupAsset(initialTag);
     }
   }, [initialTag]);
 
@@ -60,14 +144,7 @@ export default function ScanPage() {
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 250, height: 250 } },
         (decodedText) => {
-          // Detected QR code payload
-          let tag = decodedText;
-          if (decodedText.includes("tag=")) {
-            const urlParams = new URLSearchParams(decodedText.split("?")[1]);
-            tag = urlParams.get("tag") || decodedText;
-          }
-          setScannedTag(tag);
-          lookupAssetByTag(tag);
+          lookupAsset(decodedText);
           html5QrCode.stop().then(() => setCameraActive(false));
         },
         () => {}
@@ -174,7 +251,7 @@ export default function ScanPage() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  lookupAssetByTag(scannedTag);
+                  lookupAsset(scannedTag);
                 }}
                 style={{ display: "flex", gap: "8px", maxWidth: "420px", margin: "0 auto" }}
               >
@@ -182,7 +259,7 @@ export default function ScanPage() {
                   type="text"
                   className="form-input"
                   style={{ flex: 1, fontFamily: "var(--font-mono)", textAlign: "center" }}
-                  placeholder="e.g. AST-00102"
+                  placeholder="e.g. INFRA-AMD-RD-001 or scan payload"
                   value={scannedTag}
                   onChange={(e) => setScannedTag(e.target.value)}
                 />
