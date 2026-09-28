@@ -65,9 +65,9 @@ USERS / CITIZENS / GOVERNMENT OFFICERS
 
 | Component | Target Platform | Live URL / Swagger Docs |
 |---|---|---|
-| **Frontend Web App** | **Vercel** | `https://gov-infra-alm.vercel.app` (or local `http://localhost:3000`) |
-| **Backend REST API** | **Render** | `https://gov-infra-api.onrender.com` (or local `http://localhost:8000`) |
-| **Health Check API** | **Render** | `https://gov-infra-api.onrender.com/health` (or local `http://localhost:8000/health`) |
+| **Frontend Web App** | **Vercel** | `https://pravi-frontend-three.vercel.app` (or local `http://localhost:3000`) |
+| **Backend REST API** | **Render** | `https://pravi-backend-szu0.onrender.com` (or local `http://localhost:8000`) |
+| **Health Check API** | **Render** | `https://pravi-backend-szu0.onrender.com/health` (or local `http://localhost:8000/health`) |
 | **Database** | **MongoDB Atlas** | Managed MongoDB Atlas 7.0 Cluster |
 
 ---
